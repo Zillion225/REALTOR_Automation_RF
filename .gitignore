@@ -1,0 +1,40 @@
+# Python-related files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.env
+
+# Robot Framework output files
+output.xml
+report.html
+log.html
+debug.log
+*.png
+*.jpg
+*.jpeg
+
+# Result and temporary files
+results/
+*.tmp
+*.temp
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.iml
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Logs and other unnecessary files
+*.log
+*.bak
+*.swp
+*.swo
