@@ -276,29 +276,76 @@ Verify Text In All List
     # Return the final result of the check
     RETURN    ${result}
 
-Scroll Until Element Found
-    [Documentation]    Scrolls through the page until the specified element is found or the maximum number of attempts is reached.
-    ...                Arguments:
-    ...                - ${target_locator}: The locator of the target element to find.
-    ...                - ${max_scroll_attempts} (default=5): The maximum number of scroll attempts before failing.
-    ...                Behavior:
-    ...                - If the element is found within the specified attempts, the keyword stops scrolling.
-    ...                - If the element is not found, it raises an error indicating the element was not found.
-    [Arguments]    ${target_locator}    ${max_scroll_attempts}=5
-    ${attempts}=    Set Variable    0
-    ${is_page_contain_element}=    Set Variable    False
+# Scroll Until Element Found
+#     [Documentation]    Scrolls through the page until the specified element is found or the maximum number of attempts is reached.
+#     ...                Arguments:
+#     ...                - ${target_locator}: The locator of the target element to find.
+#     ...                - ${max_scroll_attempts} (default=5): The maximum number of scroll attempts before failing.
+#     ...                Behavior:
+#     ...                - If the element is found within the specified attempts, the keyword stops scrolling.
+#     ...                - If the element is not found, it raises an error indicating the element was not found.
+#     [Arguments]    ${target_locator}    ${max_scroll_attempts}=5
+#     ${attempts}=    Set Variable    0
+#     ${is_page_contain_element}=    Set Variable    False
 
-    WHILE    ${attempts} < ${max_scroll_attempts}
-        ${is_page_contain_element}=    Run Keyword And Return Status    Page Should Contain Element    locator=${target_locator}
-        Run Keyword If    ${is_page_contain_element}    Exit For Loop
-        Swipe Up
-        ${attempts}=    Evaluate    ${attempts} + 1
-    END
+#     WHILE    ${attempts} < ${max_scroll_attempts}
+#         ${is_page_contain_element}=    Run Keyword And Return Status    Page Should Contain Element    locator=${target_locator}
+#         Run Keyword If    ${is_page_contain_element}    Exit For Loop
+#         Swipe Up
+#         ${attempts}=    Evaluate    ${attempts} + 1
+#     END
 
-    IF    ${is_page_contain_element} == False
-        Fail    Element with locator "${target_locator}" not found after ${max_scroll_attempts} scroll attempts.
-    END
+#     IF    ${is_page_contain_element} == False
+#         Fail    Element with locator "${target_locator}" not found after ${max_scroll_attempts} scroll attempts.
+#     END
 
 Swipe Up
-    [Arguments]    ${start_x}=50    ${start_y}=90    ${end_x}=50    ${end_y}=10    ${duration}=500
-    Swipe    ${start_x}    ${start_y}    ${end_x}    ${end_y}    ${duration}
+    [Arguments]    ${scrollview_element_locator}    ${swipe_speed}=750
+    ${element_size}=    Get Element Size    ${scrollview_element_locator}
+    ${element_location}=    Get Element Location    ${scrollview_element_locator}
+    
+    # Calculate swipe coordinates
+    ${center_x}=    Evaluate    ${element_location['x']} + (${element_size['width']} / 2)
+    ${start_y}=     Evaluate    ${element_location['y']} + (${element_size['height']} * 0.7)
+    ${end_y}=       Evaluate    ${element_location['y']} + (${element_size['height']} * 0.3)
+    
+    Swipe    ${center_x}    ${start_y}    ${center_x}    ${end_y}    ${swipe_speed}
+
+Swipe Down
+    [Arguments]    ${scrollview_element_locator}    ${swipe_speed}=750
+    ${element_size}=    Get Element Size    ${scrollview_element_locator}
+    ${element_location}=    Get Element Location    ${scrollview_element_locator}
+    
+    # Calculate swipe coordinates
+    ${center_x}=    Evaluate    ${element_location['x']} + (${element_size['width']} / 2)
+    ${start_y}=     Evaluate    ${element_location['y']} + (${element_size['height']} * 0.3)
+    ${end_y}=       Evaluate    ${element_location['y']} + (${element_size['height']} * 0.7)
+    
+    Swipe    ${center_x}    ${start_y}    ${center_x}    ${end_y}    ${swipe_speed}
+
+Calculate Swipe Position
+    [Arguments]    ${scrollview_element_locator}    ${type}="DOWN"
+    ${element_size}=    Get Element Size    ${scrollview_element_locator}
+    ${element_location}=    Get Element Location    ${scrollview_element_locator}
+
+    ${type}=    Convert To Upper Case    ${type}
+    IF    "${type}" not in ["UP", "DOWN"]
+        Fail    Invalid swipe type: ${type}. Use "UP" or "DOWN".
+    END
+
+    IF    "${type}" == "UP"
+        ${start_y_multiplier}=    Set Variable    0.7
+        ${end_y_multiplier}=    Set Variable    0.3
+    ELSE
+        ${start_y_multiplier}=    Set Variable    0.3
+        ${end_y_multiplier}=    Set Variable    0.7
+    END
+    
+    # Calculate swipe coordinates
+    ${center_x}=    Evaluate    ${element_location['x']} + (${element_size['width']} / 2)
+    ${start_y}=     Evaluate    ${element_location['y']} + (${element_size['height']} * ${start_y_multiplier})
+    ${end_y}=       Evaluate    ${element_location['y']} + (${element_size['height']} * ${end_y_multiplier})
+    
+    ${dict}=    Create Dictionary    center_x=${center_x}    start_y=${start_y}    end_y=${end_y}
+    
+    RETURN    ${dict}
