@@ -68,11 +68,16 @@ TC-001
     ${property_info}=    propertyInfoPO.Get Property Information
     Log    ${property_info}
 
-    # Verify Property Price is less than ${SELECT_FILTER_MAX_PRICE}
-    Should Be True    ${property_info}[PRICE] >= ${SELECT_FILTER_MAX_PRICE}
+    # Verify Property Price is less than ${EXPECT_PINFO_PROPERY_PRICE_LESS_THAN_EQUAL}
+    ${max_price}=    commonPO.Convert Text to Number    text=${EXPECT_PINFO_PROPERY_PRICE_LESS_THAN_EQUAL}
+    Should Be True    ${property_info}[PRICE] <= ${max_price}
 
     # Verify Property Bedrooms
     searchResultPO.Verify Rooms Number    filter_rooms=${SELECT_FILTER_SELECT_BEDROOMS}    actual_display_rooms=${property_info}[BEDROOMS]
+    
+    # Verify Property Type
+    Should Be Equal As Strings    first=${property_info}[PROPERTY_TYPE]    second=${EXPECT_PINFO_PROPERY_TYPE}
+    
     # Go to REALTOR Information    
     propertyInfoPO.Scroll To REALTOR Information
     ${realtor_info}=    propertyInfoPO.Get REALTOR Information
