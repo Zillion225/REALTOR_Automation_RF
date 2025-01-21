@@ -19,7 +19,6 @@ Custom Test Teardown
     Stop Screen Recording
     # Close Application
 
-*** Keywords ***
 Find Substring Index
     [Documentation]    Finds the index of the first occurrence of a substring within a text string.
     ...                Returns -1 if the substring is not found, similar to JavaScript's indexOf method.
