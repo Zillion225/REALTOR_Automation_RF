@@ -32,7 +32,7 @@ Select Max Price
     ${is_find_item}=    commonPO.Scroll Until Element Located
     ...    scroll_container_locator=${L_FILTER_RANGE_MAX_DROPDOWN_SCROLLVIEW}
     ...    target_element_locator=${new_locator}
-    ...    max_scroll_attempts=16
+    ...    max_scroll_attempts=20
 
     IF    ${is_find_item}
         Click Element    ${new_locator}
