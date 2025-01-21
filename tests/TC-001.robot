@@ -35,7 +35,7 @@ TC-001
     # Dismiss Cookies Popup
     realtorPO.Dismiss Cookies Popup
 
-    # Search with keyword
+    # === Search and Verify Keyword ===
     searchPO.Search with Keyword    ${SEARCH_KEYWORD}
     searchPO.Wait Until Suggestion Box Appears
     # Check all suggesion item cointain word from ${SEARCH_KEYWORD}
@@ -47,21 +47,21 @@ TC-001
     # Wait until search results appear
     searchPO.Wait Until Selected Tag Appear    timeout=30
     
-    # Open Filter
+    # === Apply Filter ===
     filterPO.Open Filter
     filterPO.Wait Until Filter Appears
-    # Click Tab For Sale
+    # Select Tab, Max Price, Bedroom
     filterPO.Click Filter Tab "For Sale"
-    filterPO.Choose Max Price    ${SELECT_FILTER_MAX_PRICE}
+    filterPO.Select Max Price    ${SELECT_FILTER_MAX_PRICE}
     filterPO.Set Bedrooms to Value    ${SELECT_FILTER_SELECT_BEDROOMS}
-    # Open Accordion Box
+    # Open Accordion Box and Select Property Type
     filterPO.Open Accordion Property Type
     filterPO.Select Property Type        ${SELECT_PROPERTY_TYPE}
     filterPO.Click Search
     
-    # Search Result Page
+    # === Search Result Verify ===
     searchResultPO.Wait Until Search Result Appear
-    searchResultPO.Scroll Until Card Visible    index=${SELECT_RESULT_CARD_INDEX}
+    searchResultPO.Scroll Until Card Visible    card_index=${SELECT_RESULT_CARD_INDEX}
     searchResultPO.Select Card    index=${SELECT_RESULT_CARD_INDEX}
 
     # Property Information Page
@@ -82,4 +82,5 @@ TC-001
     propertyInfoPO.Scroll To REALTOR Information
     ${realtor_info}=    propertyInfoPO.Get REALTOR Information
     Log    ${realtor_info}
+
     Sleep    3s

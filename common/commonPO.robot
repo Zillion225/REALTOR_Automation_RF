@@ -276,28 +276,65 @@ Verify Text In All List
     # Return the final result of the check
     RETURN    ${result}
 
-# Scroll Until Element Found
-#     [Documentation]    Scrolls through the page until the specified element is found or the maximum number of attempts is reached.
-#     ...                Arguments:
-#     ...                - ${target_locator}: The locator of the target element to find.
-#     ...                - ${max_scroll_attempts} (default=5): The maximum number of scroll attempts before failing.
-#     ...                Behavior:
-#     ...                - If the element is found within the specified attempts, the keyword stops scrolling.
-#     ...                - If the element is not found, it raises an error indicating the element was not found.
-#     [Arguments]    ${target_locator}    ${max_scroll_attempts}=5
-#     ${attempts}=    Set Variable    0
-#     ${is_page_contain_element}=    Set Variable    False
+Scroll Until Element Located 
+    [Documentation]    Scrolls through a scrollable container until the specified target element is visible or until the maximum number of attempts is reached.
+        ...                - ${scroll_container_locator}: Locator for the scrollable container (e.g., a list or scrollview).
+        ...                - ${target_element_locator}: Locator for the target element to find.
+        ...                - ${max_scroll_attempts}: Maximum number of scroll attempts before failing.
+        ...                - ${swipe_duration}: (Optional) Duration of the swipe action in milliseconds. Default is 600ms.
+        ...                - ${wait_after_swipe}: (Optional) Wait time after each swipe. Default is 0.2 seconds.
+    [Arguments]    
+    ...    ${scroll_container_locator}    # Locator for the scrollable container (e.g., a list or a scrollview).
+    ...    ${target_element_locator}      # Locator for the target element to find.
+    ...    ${max_scroll_attempts}         # Maximum number of scroll attempts before failing.
+    ...    ${swipe_duration}=600          # (Optional) Duration of the swipe action in milliseconds. Default is 600ms.
+    ...    ${wait_after_swipe}=0.2s       # (Optional) Wait time after each swipe. Default is 0.2 seconds.
 
-#     WHILE    ${attempts} < ${max_scroll_attempts}
-#         ${is_page_contain_element}=    Run Keyword And Return Status    Page Should Contain Element    locator=${target_locator}
-#         Run Keyword If    ${is_page_contain_element}    Exit For Loop
-#         Swipe Up
-#         ${attempts}=    Evaluate    ${attempts} + 1
-#     END
+    # Initialize the flag to indicate whether the target element is found.
+    ${element_found} =    Set Variable    False
 
-#     IF    ${is_page_contain_element} == False
-#         Fail    Element with locator "${target_locator}" not found after ${max_scroll_attempts} scroll attempts.
-#     END
+    # Check if the target element is already visible without scrolling.
+    ${element_already_visible} =    Run Keyword And Return Status    Page Should Contain Element    ${target_element_locator}
+    IF    ${element_already_visible}
+        Log    Target element already visible: ${target_element_locator}
+        RETURN    ${True}    # Exit if the target element is already visible.
+    END
+
+    # Calculate the swipe coordinates for scrolling within the container.
+    ${swipe_coordinates} =    Calculate Swipe Y Position    scrollview_element_locator=${scroll_container_locator}    swipe_direction=DOWN
+
+    # Start scrolling for a maximum number of attempts.
+    FOR    ${attempt}    IN RANGE    ${max_scroll_attempts}
+        # Ensure the scrollable container is present to prevent the app from crashing.
+        Page Should Contain Element    ${scroll_container_locator}
+
+        # Perform the swipe gesture using the calculated coordinates.
+        Swipe    
+        ...    start_x=${swipe_coordinates}[CENTER_X]    
+        ...    start_y=${swipe_coordinates}[START_Y]
+        ...    offset_x=${swipe_coordinates}[CENTER_X]
+        ...    offset_y=${swipe_coordinates}[END_Y]
+        ...    duration=${swipe_duration}
+
+        # Check if the target element becomes visible after the swipe.
+        ${element_already_visible} =    Run Keyword And Return Status    Page Should Contain Element    ${target_element_locator}
+
+        IF    ${element_already_visible}
+            Log    Target element visible after ${attempt} attempts: ${target_element_locator}
+            BREAK    # Exit the loop if the target element is found.
+        END
+
+        # Wait for a short duration before the next swipe.
+        Sleep    ${wait_after_swipe}
+    END
+
+    # If the target element is still not found after all attempts, raise an error.
+    IF    ${element_already_visible} == False
+        Fail    Element with locator "${target_element_locator}" not found after ${max_scroll_attempts} scroll attempts.
+    END
+
+    # Return whether the target element was found.
+    RETURN    ${element_already_visible}
 
 Swipe Up
     [Arguments]    ${scrollview_element_locator}    ${swipe_speed}=750
@@ -306,8 +343,8 @@ Swipe Up
     
     # Calculate swipe coordinates
     ${center_x}=    Evaluate    ${element_location['x']} + (${element_size['width']} / 2)
-    ${start_y}=     Evaluate    ${element_location['y']} + (${element_size['height']} * 0.7)
-    ${end_y}=       Evaluate    ${element_location['y']} + (${element_size['height']} * 0.3)
+    ${start_y}=     Evaluate    ${element_location['y']} + (${element_size['height']} * 0.2)
+    ${end_y}=       Evaluate    ${element_location['y']} + (${element_size['height']} * 0.9)
     
     Swipe    ${center_x}    ${start_y}    ${center_x}    ${end_y}    ${swipe_speed}
 
@@ -318,27 +355,27 @@ Swipe Down
     
     # Calculate swipe coordinates
     ${center_x}=    Evaluate    ${element_location['x']} + (${element_size['width']} / 2)
-    ${start_y}=     Evaluate    ${element_location['y']} + (${element_size['height']} * 0.3)
-    ${end_y}=       Evaluate    ${element_location['y']} + (${element_size['height']} * 0.7)
+    ${start_y}=     Evaluate    ${element_location['y']} + (${element_size['height']} * 0.9)
+    ${end_y}=       Evaluate    ${element_location['y']} + (${element_size['height']} * 0.2)
     
     Swipe    ${center_x}    ${start_y}    ${center_x}    ${end_y}    ${swipe_speed}
 
-Calculate Swipe Position
-    [Arguments]    ${scrollview_element_locator}    ${type}="DOWN"
+Calculate Swipe Y Position
+    [Arguments]    ${scrollview_element_locator}    ${swipe_direction}="DOWN"
     ${element_size}=    Get Element Size    ${scrollview_element_locator}
     ${element_location}=    Get Element Location    ${scrollview_element_locator}
 
-    ${type}=    Convert To Upper Case    ${type}
-    IF    "${type}" not in ["UP", "DOWN"]
-        Fail    Invalid swipe type: ${type}. Use "UP" or "DOWN".
+    ${swipe_direction}=    Convert To Upper Case    ${swipe_direction}
+    IF    "${swipe_direction}" not in ["UP", "DOWN"]
+        Fail    Invalid swipe type: ${swipe_direction}. Use "UP" or "DOWN".
     END
 
-    IF    "${type}" == "UP"
-        ${start_y_multiplier}=    Set Variable    0.7
-        ${end_y_multiplier}=    Set Variable    0.3
+    IF    "${swipe_direction}" == "UP"
+        ${start_y_multiplier}=    Set Variable    0.2
+        ${end_y_multiplier}=    Set Variable    0.9
     ELSE
-        ${start_y_multiplier}=    Set Variable    0.3
-        ${end_y_multiplier}=    Set Variable    0.7
+        ${start_y_multiplier}=    Set Variable    0.9
+        ${end_y_multiplier}=    Set Variable    0.2
     END
     
     # Calculate swipe coordinates
@@ -346,6 +383,6 @@ Calculate Swipe Position
     ${start_y}=     Evaluate    ${element_location['y']} + (${element_size['height']} * ${start_y_multiplier})
     ${end_y}=       Evaluate    ${element_location['y']} + (${element_size['height']} * ${end_y_multiplier})
     
-    ${dict}=    Create Dictionary    center_x=${center_x}    start_y=${start_y}    end_y=${end_y}
+    ${dict}=    Create Dictionary    CENTER_X=${center_x}    START_Y=${start_y}    END_Y=${end_y}
     
     RETURN    ${dict}

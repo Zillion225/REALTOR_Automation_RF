@@ -6,13 +6,11 @@ Wait Until Property Information Page Display
     Wait Until Page Contains Element    ${L_PINFO_MLS_CODE}
 
 Scroll To REALTOR Information
-    commonPO.Scroll Scroview Until Item Is Visible
-    ...    scrollview_locator=${L_PINFO_SCROLLVIEW}
-    ...    item_locator=${L_PINFO_REALTOR_NAME}
-    ...    max_attempts=10
-    ...    scroll_offset_y=-300
-    ...    swipe_speed=500
-    ...    sleep_time=0.2s
+    commonPO.Scroll Until Element Located
+    ...    scroll_container_locator=${L_PINFO_SCROLLVIEW}
+    ...    target_element_locator=${L_PINFO_REALTOR_NAME}
+    ...    max_scroll_attempts=10
+    
     Wait Until Element Is Visible    locator=${L_PINFO_REALTOR_NAME}
 
 Get REALTOR Information
