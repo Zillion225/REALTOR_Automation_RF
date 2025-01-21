@@ -143,64 +143,6 @@ Convert Text Number to Actual Numeric
 
     # Return the result
     RETURN    ${result}
-
-Scroll Scroview Until Item Is Visible
-    [Arguments]    ${scrollview_locator}    ${item_locator}    ${end_marker_text}=$NOENDMARK$    ${scroll_offset_x}=0    ${scroll_offset_y}=-200    ${swipe_speed}=800    ${max_attempts}=20    ${sleep_time}=1s
-    [Documentation]    Scrolls through a dropdown menu until the specified item is visible or until the end of the list is reached.
-        ...                - ${dropdown_locator}: Locator of the dropdown element.
-        ...                - ${item_locator}: Locator of the item to find.
-        ...                - ${end_marker_text}: Text indicating the end of the dropdown list (optional).
-        ...                - ${scroll_offset_x}, ${scroll_offset_y}: Scroll offset for swipe action.
-        ...                - ${swipe_speed}: Speed of swipe action.
-        ...                - ${max_attempts}: Maximum number of scroll attempts.
-        ...                - ${sleep_time}: Time to wait between scroll actions.
-
-    # Find the center of the dropdown element for scrolling
-    ${center_coordinates} =    Get Center Coordinates    ${scrollview_locator}
-    ${item_found} =    Set Variable    False
-
-    # Check if the target item is already visible on the screen
-    ${item_check_result} =    Run Keyword And Ignore Error    Page Should Contain Element    ${item_locator}
-    IF    '${item_check_result}[0]' == 'PASS'
-        Log    Target item is already visible: ${item_locator}
-        RETURN    True
-    END
-
-    # If the target item is not found, initiate a swipe loop to continue searching until it is located.
-    FOR    ${attempt}    IN RANGE    ${max_attempts}
-
-        Log    Scrolling through dropdown to search for the target item
-        # Perform a scroll/swipe action
-        Swipe    ${center_coordinates[0]}    ${center_coordinates[1] + 100}    ${center_coordinates[0] + ${scroll_offset_x}}    ${center_coordinates[1] + ${scroll_offset_y}}    ${swipe_speed}
-
-        # Ensure the dropdown menu remains on the screen to avoid crashes
-        Page Should Contain Element    ${scrollview_locator}
-        
-        # Check if the target item is now visible
-        ${item_check_result} =    Run Keyword And Ignore Error    Page Should Contain Element    ${item_locator}
-
-        # Check if the end of the dropdown is reached (optional)
-        ${end_marker_check_result} =    Run Keyword And Ignore Error    Page Should Contain Text    ${end_marker_text}
-
-        # If the target item is visible, log and exit the loop
-        IF    '${item_check_result}[0]' == 'PASS'
-            Log    Target item found: ${item_locator}
-            ${item_found} =    Set Variable    True
-            BREAK
-
-        # If the end marker is visible, log and exit the loop
-        ELSE IF    '${end_marker_check_result}[0]' == 'PASS'
-            Log    End of dropdown reached: ${end_marker_text}
-            BREAK
-
-        END
-
-        # Wait briefly to let the UI update before the next scroll
-        Sleep    ${sleep_time}
-    END
-
-    # Return whether the target item was found
-    RETURN    ${item_found}
     
 Adjust Display Value to Target
     [Arguments]
