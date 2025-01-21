@@ -84,5 +84,3 @@ TC-001
     
     # Log  REALTOR Information (Firstname Lastname)
     Log    ${realtor_info}
-
-    Sleep    3s

@@ -1,6 +1,6 @@
 {
   "platformName": "Android",
-  "uuid": "257f9538",
+  "uuid": "emulator-5554",
   "automationName": "UiAutomator2",
   "appPackage": "ca.crea.app.consumer",
   "appActivity": "ca.crea.app.consumer.MainActivity",
