@@ -4,5 +4,6 @@
   "automationName": "UiAutomator2",
   "appPackage": "ca.crea.app.consumer",
   "appActivity": "ca.crea.app.consumer.MainActivity",
-  "noReset": false
+  "noReset": false,
+  "newCommandTimeout": 300
 }

@@ -23,18 +23,16 @@ Click Filter Tab "Sold"
 Click Filter Tab "Lease"
     Click Element    ${L_FILTER_TABS_LEASE}
 
-Choose Max Price
+Select Max Price
     [Arguments]    ${price}
     Click Element    ${L_FILTER_RANGE_MAX_DROPDOWN}
     Wait Until Element Is Visible    ${L_FILTER_RANGE_MAX_DROPDOWN_SCROLLVIEW}
 
     ${new_locator} =    Replace String    ${L_FILTER_RANGE_MAX_DROPDOWN_ITEM}    {PRICE}    ${price}
-    ${is_find_item}=    commonPO.Scroll Scroview Until Item Is Visible   
-    ...    scrollview_locator=${L_FILTER_RANGE_MAX_DROPDOWN_SCROLLVIEW}    
-    ...    item_locator=${new_locator}
-    ...    end_marker_text=${T_MAX_RANGE_MAX_PRICE}
-    ...    max_attempts=20
-    ...    sleep_time=0.1s
+    ${is_find_item}=    commonPO.Scroll Until Element Located
+    ...    scroll_container_locator=${L_FILTER_RANGE_MAX_DROPDOWN_SCROLLVIEW}
+    ...    target_element_locator=${new_locator}
+    ...    max_scroll_attempts=20
 
     IF    ${is_find_item}
         Click Element    ${new_locator}

@@ -25,19 +25,20 @@ Calculate Scroll Max Attemps
     RETURN    ${max_attempts}
 
 Scroll Until Card Visible
-    [Arguments]    ${index}
-    ${max_attempts}=   Calculate Scroll Max Attemps    ${index}
+    [Arguments]    ${card_index}
+    # Caclate max attempt for scrolling
+    ${max_attempts}=   Calculate Scroll Max Attemps    ${card_index}
     Log    ${max_attempts}
-    ${new_locator}=    Replace String    string=${L_SEARCHRESULT_CARD_INDEX}    search_for={INDEX}    replace_with=${index}
+
+    # Create locator by replace {INDEX} with ${card_index}
+    ${new_locator}=    Replace String    string=${L_SEARCHRESULT_CARD_INDEX}    search_for={INDEX}    replace_with=${card_index}
     Wait Until Element Is Visible    locator=${L_SEARCHRESULT_SCROLLVIEW}    timeout=15s
-    ${is_find_item}=    commonPO.Scroll Scroview Until Item Is Visible
-                        ...    scrollview_locator=${L_SEARCHRESULT_SCROLLVIEW}    
-                        ...    item_locator=${new_locator}
-                        ...    max_attempts=${max_attempts}
-                        ...    scroll_offset_y=-300
-                        ...    swipe_speed=600
-                        ...    sleep_time=0.1s
-    Log    ${is_find_item}
+
+    ${is_find_item}=    commonPO.Scroll Until Element Located
+    ...    scroll_container_locator=${L_SEARCHRESULT_SCROLLVIEW}
+    ...    target_element_locator=${new_locator}
+    ...    max_scroll_attempts=${max_attempts}
+    
     RETURN    ${is_find_item}
     
 Select Card

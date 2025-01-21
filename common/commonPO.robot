@@ -143,64 +143,6 @@ Convert Text Number to Actual Numeric
 
     # Return the result
     RETURN    ${result}
-
-Scroll Scroview Until Item Is Visible
-    [Arguments]    ${scrollview_locator}    ${item_locator}    ${end_marker_text}=$NOENDMARK$    ${scroll_offset_x}=0    ${scroll_offset_y}=-200    ${swipe_speed}=800    ${max_attempts}=20    ${sleep_time}=1s
-    [Documentation]    Scrolls through a dropdown menu until the specified item is visible or until the end of the list is reached.
-        ...                - ${dropdown_locator}: Locator of the dropdown element.
-        ...                - ${item_locator}: Locator of the item to find.
-        ...                - ${end_marker_text}: Text indicating the end of the dropdown list (optional).
-        ...                - ${scroll_offset_x}, ${scroll_offset_y}: Scroll offset for swipe action.
-        ...                - ${swipe_speed}: Speed of swipe action.
-        ...                - ${max_attempts}: Maximum number of scroll attempts.
-        ...                - ${sleep_time}: Time to wait between scroll actions.
-
-    # Find the center of the dropdown element for scrolling
-    ${center_coordinates} =    Get Center Coordinates    ${scrollview_locator}
-    ${item_found} =    Set Variable    False
-
-    # Check if the target item is already visible on the screen
-    ${item_check_result} =    Run Keyword And Ignore Error    Page Should Contain Element    ${item_locator}
-    IF    '${item_check_result}[0]' == 'PASS'
-        Log    Target item is already visible: ${item_locator}
-        RETURN    True
-    END
-
-    # If the target item is not found, initiate a swipe loop to continue searching until it is located.
-    FOR    ${attempt}    IN RANGE    ${max_attempts}
-
-        Log    Scrolling through dropdown to search for the target item
-        # Perform a scroll/swipe action
-        Swipe    ${center_coordinates[0]}    ${center_coordinates[1] + 100}    ${center_coordinates[0] + ${scroll_offset_x}}    ${center_coordinates[1] + ${scroll_offset_y}}    ${swipe_speed}
-
-        # Ensure the dropdown menu remains on the screen to avoid crashes
-        Page Should Contain Element    ${scrollview_locator}
-        
-        # Check if the target item is now visible
-        ${item_check_result} =    Run Keyword And Ignore Error    Page Should Contain Element    ${item_locator}
-
-        # Check if the end of the dropdown is reached (optional)
-        ${end_marker_check_result} =    Run Keyword And Ignore Error    Page Should Contain Text    ${end_marker_text}
-
-        # If the target item is visible, log and exit the loop
-        IF    '${item_check_result}[0]' == 'PASS'
-            Log    Target item found: ${item_locator}
-            ${item_found} =    Set Variable    True
-            BREAK
-
-        # If the end marker is visible, log and exit the loop
-        ELSE IF    '${end_marker_check_result}[0]' == 'PASS'
-            Log    End of dropdown reached: ${end_marker_text}
-            BREAK
-
-        END
-
-        # Wait briefly to let the UI update before the next scroll
-        Sleep    ${sleep_time}
-    END
-
-    # Return whether the target item was found
-    RETURN    ${item_found}
     
 Adjust Display Value to Target
     [Arguments]
@@ -276,29 +218,113 @@ Verify Text In All List
     # Return the final result of the check
     RETURN    ${result}
 
-Scroll Until Element Found
-    [Documentation]    Scrolls through the page until the specified element is found or the maximum number of attempts is reached.
-    ...                Arguments:
-    ...                - ${target_locator}: The locator of the target element to find.
-    ...                - ${max_scroll_attempts} (default=5): The maximum number of scroll attempts before failing.
-    ...                Behavior:
-    ...                - If the element is found within the specified attempts, the keyword stops scrolling.
-    ...                - If the element is not found, it raises an error indicating the element was not found.
-    [Arguments]    ${target_locator}    ${max_scroll_attempts}=5
-    ${attempts}=    Set Variable    0
-    ${is_page_contain_element}=    Set Variable    False
+Scroll Until Element Located 
+    [Documentation]    Scrolls through a scrollable container until the specified target element is visible or until the maximum number of attempts is reached.
+        ...                - ${scroll_container_locator}: Locator for the scrollable container (e.g., a list or scrollview).
+        ...                - ${target_element_locator}: Locator for the target element to find.
+        ...                - ${max_scroll_attempts}: Maximum number of scroll attempts before failing.
+        ...                - ${swipe_duration}: (Optional) Duration of the swipe action in milliseconds. Default is 600ms.
+        ...                - ${wait_after_swipe}: (Optional) Wait time after each swipe. Default is 0.2 seconds.
+    [Arguments]    
+    ...    ${scroll_container_locator}    # Locator for the scrollable container (e.g., a list or a scrollview).
+    ...    ${target_element_locator}      # Locator for the target element to find.
+    ...    ${max_scroll_attempts}         # Maximum number of scroll attempts before failing.
+    ...    ${swipe_duration}=600          # (Optional) Duration of the swipe action in milliseconds. Default is 600ms.
+    ...    ${wait_after_swipe}=0.2s       # (Optional) Wait time after each swipe. Default is 0.2 seconds.
 
-    WHILE    ${attempts} < ${max_scroll_attempts}
-        ${is_page_contain_element}=    Run Keyword And Return Status    Page Should Contain Element    locator=${target_locator}
-        Run Keyword If    ${is_page_contain_element}    Exit For Loop
-        Swipe Up
-        ${attempts}=    Evaluate    ${attempts} + 1
+    # Initialize the flag to indicate whether the target element is found.
+    ${element_found} =    Set Variable    False
+
+    # Check if the target element is already visible without scrolling.
+    ${element_already_visible} =    Run Keyword And Return Status    Page Should Contain Element    ${target_element_locator}
+    IF    ${element_already_visible}
+        Log    Target element already visible: ${target_element_locator}
+        RETURN    ${True}    # Exit if the target element is already visible.
     END
 
-    IF    ${is_page_contain_element} == False
-        Fail    Element with locator "${target_locator}" not found after ${max_scroll_attempts} scroll attempts.
+    # Calculate the swipe coordinates for scrolling within the container.
+    ${swipe_coordinates} =    Calculate Swipe Y Position    scrollview_element_locator=${scroll_container_locator}    swipe_direction=DOWN
+
+    # Start scrolling for a maximum number of attempts.
+    FOR    ${attempt}    IN RANGE    ${max_scroll_attempts}
+        # Ensure the scrollable container is present to prevent the app from crashing.
+        Page Should Contain Element    ${scroll_container_locator}
+
+        # Perform the swipe gesture using the calculated coordinates.
+        Swipe    
+        ...    start_x=${swipe_coordinates}[CENTER_X]    
+        ...    start_y=${swipe_coordinates}[START_Y]
+        ...    offset_x=${swipe_coordinates}[CENTER_X]
+        ...    offset_y=${swipe_coordinates}[END_Y]
+        ...    duration=${swipe_duration}
+
+        # Check if the target element becomes visible after the swipe.
+        ${element_already_visible} =    Run Keyword And Return Status    Page Should Contain Element    ${target_element_locator}
+
+        IF    ${element_already_visible}
+            Log    Target element visible after ${attempt} attempts: ${target_element_locator}
+            BREAK    # Exit the loop if the target element is found.
+        END
+
+        # Wait for a short duration before the next swipe.
+        Sleep    ${wait_after_swipe}
     END
+
+    # If the target element is still not found after all attempts, raise an error.
+    IF    ${element_already_visible} == False
+        Fail    Element with locator "${target_element_locator}" not found after ${max_scroll_attempts} scroll attempts.
+    END
+
+    # Return whether the target element was found.
+    RETURN    ${element_already_visible}
 
 Swipe Up
-    [Arguments]    ${start_x}=50    ${start_y}=90    ${end_x}=50    ${end_y}=10    ${duration}=500
-    Swipe    ${start_x}    ${start_y}    ${end_x}    ${end_y}    ${duration}
+    [Arguments]    ${scrollview_element_locator}    ${swipe_speed}=750
+    ${element_size}=    Get Element Size    ${scrollview_element_locator}
+    ${element_location}=    Get Element Location    ${scrollview_element_locator}
+    
+    # Calculate swipe coordinates
+    ${center_x}=    Evaluate    ${element_location['x']} + (${element_size['width']} / 2)
+    ${start_y}=     Evaluate    ${element_location['y']} + (${element_size['height']} * 0.2)
+    ${end_y}=       Evaluate    ${element_location['y']} + (${element_size['height']} * 0.9)
+    
+    Swipe    ${center_x}    ${start_y}    ${center_x}    ${end_y}    ${swipe_speed}
+
+Swipe Down
+    [Arguments]    ${scrollview_element_locator}    ${swipe_speed}=750
+    ${element_size}=    Get Element Size    ${scrollview_element_locator}
+    ${element_location}=    Get Element Location    ${scrollview_element_locator}
+    
+    # Calculate swipe coordinates
+    ${center_x}=    Evaluate    ${element_location['x']} + (${element_size['width']} / 2)
+    ${start_y}=     Evaluate    ${element_location['y']} + (${element_size['height']} * 0.9)
+    ${end_y}=       Evaluate    ${element_location['y']} + (${element_size['height']} * 0.2)
+    
+    Swipe    ${center_x}    ${start_y}    ${center_x}    ${end_y}    ${swipe_speed}
+
+Calculate Swipe Y Position
+    [Arguments]    ${scrollview_element_locator}    ${swipe_direction}="DOWN"
+    ${element_size}=    Get Element Size    ${scrollview_element_locator}
+    ${element_location}=    Get Element Location    ${scrollview_element_locator}
+
+    ${swipe_direction}=    Convert To Upper Case    ${swipe_direction}
+    IF    "${swipe_direction}" not in ["UP", "DOWN"]
+        Fail    Invalid swipe type: ${swipe_direction}. Use "UP" or "DOWN".
+    END
+
+    IF    "${swipe_direction}" == "UP"
+        ${start_y_multiplier}=    Set Variable    0.2
+        ${end_y_multiplier}=    Set Variable    0.9
+    ELSE
+        ${start_y_multiplier}=    Set Variable    0.9
+        ${end_y_multiplier}=    Set Variable    0.2
+    END
+    
+    # Calculate swipe coordinates
+    ${center_x}=    Evaluate    ${element_location['x']} + (${element_size['width']} / 2)
+    ${start_y}=     Evaluate    ${element_location['y']} + (${element_size['height']} * ${start_y_multiplier})
+    ${end_y}=       Evaluate    ${element_location['y']} + (${element_size['height']} * ${end_y_multiplier})
+    
+    ${dict}=    Create Dictionary    CENTER_X=${center_x}    START_Y=${start_y}    END_Y=${end_y}
+    
+    RETURN    ${dict}
