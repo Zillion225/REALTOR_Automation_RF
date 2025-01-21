@@ -64,7 +64,7 @@ TC-001
     searchResultPO.Scroll Until Card Visible    card_index=${SELECT_RESULT_CARD_INDEX}
     searchResultPO.Select Card    index=${SELECT_RESULT_CARD_INDEX}
 
-    # Property Information Page
+    # === Property Information Page ===
     ${property_info}=    propertyInfoPO.Get Property Information
     Log    ${property_info}
 
@@ -81,6 +81,8 @@ TC-001
     # Go to REALTOR Information    
     propertyInfoPO.Scroll To REALTOR Information
     ${realtor_info}=    propertyInfoPO.Get REALTOR Information
+    
+    # Log  REALTOR Information (Firstname Lastname)
     Log    ${realtor_info}
 
     Sleep    3s
